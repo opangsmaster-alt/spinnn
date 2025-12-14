@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lucky Spin Wheel</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: radial-gradient(circle at top, #7b2cff, #3a0ca3);
+      color: #fff;
+      text-align: center;
+    }
+    .container {
+      padding: 24px 12px 40px;
+      max-width: 420px;
+      margin: auto;
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 16px;
+    }
+    .wheel-wrapper {
+      position: relative;
+      margin: 24px auto;
+      width: 280px;
+      height: 280px;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: #fff;
+    }
+    .pointer {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 20px solid #ffcc00;
+    }
+    button {
+      margin-top: 16px;
+      padding: 14px 28px;
+      font-size: 16px;
+      border: none;
+      border-radius: 999px;
+      background: #ff3d3d;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    button:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+    .note {
+      margin-top: 16px;
+      font-size: 12px;
+      opacity: 0.85;
+    }
+    .result {
+      margin-top: 16px;
+      font-size: 16px;
+      font-weight: bold;
+      min-height: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>LUCKY SPIN WHEEL</h1>
+    <div class="subtitle">Putar & Dapatkan Hadiahnya 🎁</div>
+
+    <div class="wheel-wrapper">
+      <div class="pointer"></div>
+      <canvas id="wheel" width="300" height="300"></canvas>
+    </div>
+
+    <button id="spinBtn">SPIN SEKARANG</button>
+    <div class="result" id="result"></div>
+    <div class="note">* 1x spin per pengunjung. Screenshot & kirim ke WhatsApp untuk klaim.</div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const spinBtn = document.getElementById('spinBtn');
+    const resultEl = document.getElementById('result');
+
+    const prizes = [
+      { text: 'Diskon 10%', chance: 0.3, color: '#ffbe0b' },
+      { text: 'Voucher 20k', chance: 0.2, color: '#fb5607' },
+      { text: 'Gratis Ongkir', chance: 0.2, color: '#ff006e' },
+      { text: 'Diskon 20%', chance: 0.15, color: '#8338ec' },
+      { text: 'Coba Lagi', chance: 0.1, color: '#3a86ff' },
+      { text: 'Hadiah Spesial', chance: 0.05, color: '#06d6a0' }
+    ];
+
+    const total = prizes.length;
+    const angle = (2 * Math.PI) / total;
+    let currentRotation = 0;
+    let hasSpun = false;
+
+    function drawWheel() {
+      prizes.forEach((prize, i) => {
+        ctx.beginPath();
+        ctx.moveTo(150, 150);
+        ctx.arc(150, 150, 150, angle * i, angle * (i + 1));
+        ctx.fillStyle = prize.color;
+        ctx.fill();
+
+        ctx.save();
+        ctx.translate(150, 150);
+        ctx.rotate(angle * i + angle / 2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#fff';
+        ctx.font = '14px Arial';
+        ctx.fillText(prize.text, 140, 5);
+        ctx.restore();
+      });
+    }
+
+    function pickPrize() {
+      const r = Math.random();
+      let acc = 0;
+      for (let i = 0; i < prizes.length; i++) {
+        acc += prizes[i].chance;
+        if (r <= acc) return i;
+      }
+      return prizes.length - 1;
+    }
+
+    drawWheel();
+
+    spinBtn.addEventListener('click', () => {
+      if (hasSpun) return;
+      hasSpun = true;
+      spinBtn.disabled = true;
+
+      const prizeIndex = pickPrize();
+      const spins = 5;
+      const targetRotation = spins * 2 * Math.PI + (total - prizeIndex) * angle - angle / 2;
+
+      let start = null;
+      const duration = 4000;
+
+      function animate(timestamp) {
+        if (!start) start = timestamp;
+        const progress = timestamp - start;
+        const easeOut = 1 - Math.pow(1 - progress / duration, 3);
+        currentRotation = easeOut * targetRotation;
+
+        ctx.clearRect(0, 0, 300, 300);
+        ctx.save();
+        ctx.translate(150, 150);
+        ctx.rotate(currentRotation);
+        ctx.translate(-150, -150);
+        drawWheel();
+        ctx.restore();
+
+        if (progress < duration) {
+          requestAnimationFrame(animate);
+        } else {
+          resultEl.textContent = 'Selamat! Kamu dapat: ' + prizes[prizeIndex].text;
+        }
+      }
+
+      requestAnimationFrame(animate);
+    });
+  </script>
+</body>
+</html>
