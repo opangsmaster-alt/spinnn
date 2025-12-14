@@ -82,6 +82,10 @@
     <h1>LUCKY SPIN WHEEL</h1>
     <div class="subtitle">Putar & Dapatkan Hadiahnya 🎁</div>
 
+    <div class="voucher-box" style="margin-bottom:16px;">
+      <input type="text" id="voucherInput" placeholder="Masukkan kode voucher" style="padding:10px;width:80%;border-radius:20px;border:none;text-align:center;" />
+    </div>
+
     <div class="wheel-wrapper">
       <div class="pointer"></div>
       <canvas id="wheel" width="300" height="300"></canvas>
@@ -96,6 +100,7 @@
     const canvas = document.getElementById('wheel');
     const ctx = canvas.getContext('2d');
     const spinBtn = document.getElementById('spinBtn');
+    const voucherInput = document.getElementById('voucherInput');
     const resultEl = document.getElementById('result');
 
     const prizes = [
@@ -111,6 +116,8 @@
     const angle = (2 * Math.PI) / total;
     let currentRotation = 0;
     let hasSpun = false;
+
+    const VALID_VOUCHERS = ['NATAL2025','TAHUNBARU2025'];
 
     function drawWheel() {
       prizes.forEach((prize, i) => {
